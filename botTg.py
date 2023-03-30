@@ -3,30 +3,30 @@ import time
 import datetime
 import subprocess
 
-##dicts
+# dict
 dict_start = {
     "start": {"ru": ">>Процесс сканирования запущен<<",
               "en": ">>Scanning system<<"
               },
     "while": {
-                "yes": {
-                    "ru": "Процесс завершён!",
-                    "en": "Process terminate"
-                },
-                "no": {
-                    "ru": "Процесс пропущен!",
-                    "en": "Process skipped"
-                }
-             },
+        "yes": {
+            "ru": "Процесс завершён!",
+            "en": "Process terminate"
+        },
+        "no": {
+            "ru": "Процесс пропущен!",
+            "en": "Process skipped"
+        }
+    },
     "whait": {
-                "yes": {
-                    "ru": "Процесс завершён! По причине бездействия!",
-                    "en": "Process terminate while inaction"
-                },
-                "no": {
-                    "ru": "Процесс пропущен! По причине бездействия!",
-                    "en": "Process skipped while inaction"
-                }
+        "yes": {
+            "ru": "Процесс завершён! По причине бездействия!",
+            "en": "Process terminate while inaction"
+        },
+        "no": {
+            "ru": "Процесс пропущен! По причине бездействия!",
+            "en": "Process skipped while inaction"
+        }
     }
 }
 dict_stop = {
@@ -61,45 +61,45 @@ dict_help = {
 }
 dict_wait = {
     "start": {
-                "ru": "Какую команду выполнить при длительном ожидании?\n\n" 
-                      "На данный момент активна команда /{}\n\n"
-                      "Если хотите поменять, то напишите команду\n\n"
-                      "/yes - чтобы процесс сам завершался при бездействии\n\n"
-                      "/no - чтобы процесс не завершался при бездействии",
+        "ru": "Какую команду выполнить при длительном ожидании?\n\n"
+              "На данный момент активна команда /{}\n\n"
+              "Если хотите поменять, то напишите команду\n\n"
+              "/yes - чтобы процесс сам завершался при бездействии\n\n"
+              "/no - чтобы процесс не завершался при бездействии",
 
-                "en": "What command to execute when waiting for a long time?\n\n" 
-                      "At that moment it's /{}\n\n"
-                      "If u want to change it\n\n"
-                      "/yes - the process itself terminates when idle\n\n"
-                      "/no - the process itself continue when idle"
-             },
+        "en": "What command to execute when waiting for a long time?\n\n"
+              "At that moment it's /{}\n\n"
+              "If u want to change it\n\n"
+              "/yes - the process itself terminates when idle\n\n"
+              "/no - the process itself continue when idle"
+    },
     "inside": {
-                "ru": "Вы поменяли команду ожидания на /{}",
+        "ru": "Вы поменяли команду ожидания на /{}",
 
-                "en": "You change command on /{}"
-              }
+        "en": "You change command on /{}"
+    }
 
 }
 dict_addproc = {
-    "start": {"ru":f"Введите команды\n\n"
-                   f"/yes - для добавления процесса\n\n"
-                   f"/no - для завершения",
+    "start": {"ru": f"Введите команды\n\n"
+                    f"/yes - для добавления процесса\n\n"
+                    f"/no - для завершения",
               "en": f"Send command\n\n"
                     f"/yes - for add proces\n\n"
                     f"/no - for break"
               },
     "exept": {
-                "ru": ">>Нельзя добавить пустоту<<",
-                "en": ">>u cant add None<<"
-             },
+        "ru": ">>Нельзя добавить пустоту<<",
+        "en": ">>u cant add None<<"
+    },
     "while": {
-                "ru": "Вы завершили добавление процесса",
-                "en": "You break adding the process"
-             },
+        "ru": "Вы завершили добавление процесса",
+        "en": "You break adding the process"
+    },
     "answ": {
-                "ru": 'Процесс "{}.exe" добавлен',
-                "en": 'Process "{}.exe" added'
-            }
+        "ru": 'Процесс "{}.exe" добавлен',
+        "en": 'Process "{}.exe" added'
+    }
 }
 dict_delproc = {
     "start": {"ru": f"Введите команды\n\n"
@@ -110,17 +110,17 @@ dict_delproc = {
                     f"/no - for break"
               },
     "exept": {
-                "ru": ">>Процесса с таким индексом нет<<",
-                "en": ">>there is no process with this index<<"
-             },
+        "ru": ">>Процесса с таким индексом нет<<",
+        "en": ">>there is no process with this index<<"
+    },
     "while": {
-                "ru": "Вы завершили удаление",
-                "en": "Process was deleted"
-             },
+        "ru": "Вы завершили удаление",
+        "en": "Process was deleted"
+    },
     "answ": {
-                "ru": "Процесс {} удален",
-                "en": "Process {} deleted"
-            }
+        "ru": "Процесс {} удален",
+        "en": "Process {} deleted"
+    }
 }
 
 
@@ -191,8 +191,8 @@ def netstat(command="netstat"):
     for b_line in com:
         line = " "
         b_line = b_line.decode('cp866')
-        b_line = b_line.replace("\r","")
-        b_line = b_line.replace("\n","")
+        b_line = b_line.replace("\r", "")
+        b_line = b_line.replace("\n", "")
         for i in b_line.split(" "):
             if len(i) > 2:
                 line = line + " " + i
@@ -217,7 +217,7 @@ def convert_type(lst: list) -> list:
     return m
 
 
-bot = telebot.TeleBot("5828330086:AAGCyMebjBxrzFDzKXOhJYhG3c__LjWEkCA")
+bot = telebot.TeleBot("UR API KEY")
 blacklist = file_read("blacklist.txt")
 Lcheck_app = file_read(f"killApp.txt")
 # check_app = convert_type(kill_app)
@@ -228,7 +228,9 @@ Bgot_True = None
 Lpid_tasklist = []
 language = "ru"
 port = ["80"]
-state = ["ESTABLISHED","TIME_WAIT"]
+state = ["ESTABLISHED", "TIME_WAIT"]
+
+
 # 'json': {'message_id': 53512,
 #     'from': {'id': 234241142,
 #     'is_bot': False,
@@ -332,7 +334,7 @@ def send_message(message):
 
 @bot.message_handler(commands=['wait'])
 def send_message_in(message):
-    global Bgot_True,Bcommand_wait_cmd
+    global Bgot_True, Bcommand_wait_cmd
     bot.send_message(message.chat.id, dict_wait["start"][language].format(Bcommand_wait_cmd))
     time_in = time.time()
     time_out = 0

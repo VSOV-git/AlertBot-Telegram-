@@ -97,7 +97,7 @@ def convert_type(lst: list) -> list:
     return m
 
 
-bot = telebot.TeleBot("5828330086:AAGpUMSGUqf0cAwCrrv-t4RNJXfl1qIo6xk")
+bot = telebot.TeleBot("5828330086:AAEYkzPskI5TTcb2yacFn165erjgeM6l21Q")
 blacklist = file_read("blacklist.txt")
 Lcheck_app = file_read(f"killApp.txt")
 # check_app = convert_type(kill_app)
@@ -106,6 +106,7 @@ Btask_cmd = True
 Bcommand_wait_cmd = False
 Bgot_True = None
 Lpid_tasklist = []
+language = "ru"
 port = ["80"]
 state = ["ESTABLISHED","TIME_WAIT"]
 # 'json': {'message_id': 53512,
@@ -132,6 +133,16 @@ def pid_inf(pid_id: str):
 
 def pid_kill(pid_id: str):
     command_execution(f'taskkill /pid {pid_id}')
+
+
+def get_proclist():
+    Pid_list_out = set()
+    Lpid_tasklist = command_execution_write('cp866', 'TASKLIST /FO CSV /NH /FI "IMAGENAME ne svchost.exe"')
+    for line in Lpid_tasklist:
+        lst = line.split(",")
+        if lst[0] in Lcheck_app:
+            Pid_list_out.add(lst[1])
+    return Pid_list_out
 
 
 @bot.message_handler(commands=['start'])
@@ -185,11 +196,12 @@ def send_message(message):
             Spid_procsess = set()
 
         else:
-            Lpid_tasklist = command_execution_write('cp866', 'TASKLIST /FO CSV /NH /FI "IMAGENAME ne svchost.exe"')
-            for line in Lpid_tasklist:
-                lst = line.split(",")
-                if lst[0] in Lcheck_app:
-                    Spid_procsess.add(lst[1])
+            Spid_procsess = get_proclist()
+            # Lpid_tasklist = command_execution_write('cp866', 'TASKLIST /FO CSV /NH /FI "IMAGENAME ne svchost.exe"')
+            # for line in Lpid_tasklist:
+            #     lst = line.split(",")
+            #     if lst[0] in Lcheck_app:
+            #         Spid_procsess.add(lst[1])
 
     bot.send_message(message.chat.id, ">>end<<")
 
@@ -319,6 +331,30 @@ def send_message_add(message):
         else:
             bot.send_message(message.chat.id, f"{error.__class__.__name__}: {str(error)}")
 
+#add a ful support
+@bot.message_handler(commands=['language'])
+def send_message_leng(message):
+    global language
+    time_in = time.time()
+    if language == "ru":
+        bot.send_message(message.chat.id, "Send /yes, if u want change a language to English"
+                                          "\n\n Send /no to continue")
+    elif language == "eu":
+        bot.send_message(message.chat.id, "Отправьте /yes, если хотите поменять язык на Русский"
+                                          "\n\n Отпавьте /no для продолжения")
+    while time.time() - time_in <= 10:
+        if Bgot_True is True:
+            if language == "ru":
+                language = "eu"
+                bot.send_message(message.chat.id, f"Language changed to {language}")
+                break
+            if language == "eu":
+                language = "ru"
+                bot.send_message(message.chat.id, f"Язык поменян на  {language}")
+                break
+        if Bgot_True is False:
+            break
+    bot.send_message(message.chat.id, f">>{send_message_leng.__name__}<<")
 
 
 bot.polling()

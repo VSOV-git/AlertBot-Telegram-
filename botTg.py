@@ -222,7 +222,7 @@ def convert_type(lst: list) -> list:
     return m
 
 
-bot = telebot.TeleBot("5828330086:AAGCyMebjBxrzFDzKXOhJYhG3c__LjWEkCA")
+bot = telebot.TeleBot("UR-API")
 blacklist: list = file_read("blacklist.txt")
 kill_app: list = file_read(f"killApp.txt")
 # check_app = convert_type(kill_app)

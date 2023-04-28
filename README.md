@@ -36,6 +36,7 @@ its means the bot is working now.
 7. /addproc(yes/no) - add a proces in Bot
 8. /delproc(yes/no) - delete a proces in Bot
 9. /prproc - print all proc in scan
+10. /language - change ur language to "en" or "ru"
 
 # Thanks for read
 The info about updates in **[updates.md](updates.md)**

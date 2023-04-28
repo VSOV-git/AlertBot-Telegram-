@@ -2,7 +2,7 @@ import telebot
 import time
 import datetime
 import subprocess
-
+from typing import Any
 # dict
 dict_start = {
     "start": {"ru": ">>Процесс сканирования запущен<<",
@@ -18,7 +18,7 @@ dict_start = {
             "en": "Process skipped"
         }
     },
-    "whait": {
+    "wait": {
         "yes": {
             "ru": "Процесс завершён! По причине бездействия!",
             "en": "Process terminate while inaction"
@@ -44,7 +44,8 @@ dict_help = {
           '/wait (yes/no) - какую команду выполнить при бездействии\n\n'
           '/addproc (yes/no) - добавляет дополнительный процесс в файл поиска \n\n'
           '/delproc (yes/no) - удаляет процесс из файла поиска  \n\n'
-          '/prproc - вывести все процессы из файла killApp.txt\n\n',
+          '/prproc - вывести все процессы из файла killApp.txt\n\n'
+          '/language - поменять язык "ru" или "en""\n\n',
 
     "en": 'AlertBot is a bot to monitor processes on your PC\n'
           'List of bot commands\n\n'
@@ -57,6 +58,7 @@ dict_help = {
           '/addproc (yes/no) - Adds an extra process to the search file\n\n'
           '/delproc (yes/no) - remove process from search file\n\n'
           '/prproc - print process in killApp.txt file\n\n'
+          '/language - change language "ru" or "en"\n\n'
 
 }
 dict_wait = {
@@ -154,7 +156,9 @@ def get_date() -> str:
 
 
 def command_execution(command=""):
-    # Func returned package from cmd
+    """
+    Func returned package from cmd
+    """
     result = subprocess.Popen(args=command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     return result.stdout.readlines()
 
@@ -166,18 +170,18 @@ def command_execution_write(decode="cp866", command="") -> list:
     :param command:
     :return:
     """
-    Lbyte_arr = []
+    byte_arr: list = []
     for byte_line in command_execution(command):
         # decode 'cp866'
         line = byte_line.decode(decode).replace("\r", "")
         line_now = line.split(",")
         if line_now[0] not in blacklist:
             if len(line) > 3:
-                Lbyte_arr.append(line)
+                byte_arr.append(line)
             else:
-                return Lbyte_arr
+                return byte_arr
 
-    return Lbyte_arr
+    return byte_arr
 
 
 def netstat(command="netstat"):
@@ -200,6 +204,7 @@ def netstat(command="netstat"):
     return m
 
 
+# IDK, but just stay there
 def convert_type(lst: list) -> list:
     """
     This func() is not using in work
@@ -217,18 +222,16 @@ def convert_type(lst: list) -> list:
     return m
 
 
-bot = telebot.TeleBot("UR API KEY")
-blacklist = file_read("blacklist.txt")
-Lcheck_app = file_read(f"killApp.txt")
+bot = telebot.TeleBot("5828330086:AAGCyMebjBxrzFDzKXOhJYhG3c__LjWEkCA")
+blacklist: list = file_read("blacklist.txt")
+kill_app: list = file_read(f"killApp.txt")
 # check_app = convert_type(kill_app)
-Btg_bot_send = True
-Btask_cmd = True
-Bcommand_wait_cmd = False
-Bgot_True = None
-Lpid_tasklist = []
+tg_bot_send: bool = True
+task_cmd: bool = True
+command_wait_cmd: bool = False
+got_True: Any = None
+pid_tasklist: list = []
 language = "ru"
-port = ["80"]
-state = ["ESTABLISHED", "TIME_WAIT"]
 
 
 # 'json': {'message_id': 53512,
@@ -254,16 +257,24 @@ def pid_inf(pid_id: str):
 
 
 def pid_kill(pid_id: str):
+    """
+     terminate process
+    """
     command_execution(f'taskkill /pid {pid_id}')
 
 
 def get_proclist():
-    global Lpid_tasklist
+    """
+    :return: All process in killApp
+    """
+    
+    global pid_tasklist
     Pid_list_out = set()
-    Lpid_tasklist = command_execution_write('cp866', 'TASKLIST /FO CSV /NH /FI "IMAGENAME ne svchost.exe"')
-    for line in Lpid_tasklist:
+    pid_tasklist: list = command_execution_write('cp866', 'TASKLIST /FO CSV /NH /FI "IMAGENAME ne svchost.exe"')
+
+    for line in pid_tasklist:
         lst = line.split(",")
-        if lst[0] in Lcheck_app:
+        if lst[0] in kill_app:
             Pid_list_out.add(lst[1])
     return Pid_list_out
 
@@ -277,53 +288,62 @@ def send_message(message):
     :param message:
     :return: bot.send_message
     """
-    global Btg_bot_send, Btask_cmd, Bcommand_wait_cmd, Lpid_tasklist
-    Btg_bot_send = True
-    Btask_cmd = None
-    Spid_procsess = set()
+
+    global tg_bot_send, task_cmd, command_wait_cmd, pid_tasklist
+    tg_bot_send = True
+    task_cmd = None
+    pid_process: set = set()
     bot.send_message(message.chat.id, dict_start["start"][language])
-    while Btg_bot_send:
-        while len(Spid_procsess) >= 1:
-            for PID in Spid_procsess:
-                PID = PID.replace('"', "")
-                Stext_out_bot = str(pid_inf(PID))
-                bot.send_message(message.chat.id, Stext_out_bot)
-                time_in = time.time()
+
+    while tg_bot_send:
+
+        while len(pid_process) >= 1:
+
+            for PID in pid_process:
+                PID: str = PID.replace('"', "")
+                text_out_bot: str = str(pid_inf(PID))
+                bot.send_message(message.chat.id, text_out_bot)
+                time_in: float = time.time()
+
                 while True:
-                    time_out = time.time()
-                    if not Btg_bot_send:
+                    time_out: float = time.time()
+
+                    if not tg_bot_send:
                         break
+
                     if (time_out - time_in) >= 15:
-                        if Bcommand_wait_cmd:
+                        if command_wait_cmd:
                             pid_kill(PID)
-                            bot.send_message(message.chat.id, dict_start["whait"]["yes"][language])
+                            bot.send_message(message.chat.id, dict_start["wait"]["yes"][language])
                             break
-                        if not Bcommand_wait_cmd:
-                            bot.send_message(message.chat.id, dict_start["whait"]["no"][language])
+                        if not command_wait_cmd:
+                            bot.send_message(message.chat.id, dict_start["wait"]["no"][language])
                             break
+
                     else:
-                        if Bgot_True is True:
+                        if got_True is True:
                             pid_kill(PID)
                             bot.send_message(message.chat.id, dict_start["while"]["yes"][language])
                             break
-                        if Bgot_True is False:
+                        if got_True is False:
                             bot.send_message(message.chat.id, dict_start["while"]["yes"][language])
                             break
-                        if not Btg_bot_send:
+                        if not tg_bot_send:
                             break
+
                 time.sleep(2)
-            Spid_procsess = set()
+            pid_process = set()
 
         else:
-            Spid_procsess = get_proclist()
+            pid_process: set = get_proclist()
 
     bot.send_message(message.chat.id, ">>end<<")
 
 
 @bot.message_handler(commands=['stop'])
 def send_message(message):
-    global Btg_bot_send
-    Btg_bot_send = False
+    global tg_bot_send
+    tg_bot_send = False
     bot.send_message(message.chat.id, dict_stop[language])
 
 
@@ -334,18 +354,18 @@ def send_message(message):
 
 @bot.message_handler(commands=['wait'])
 def send_message_in(message):
-    global Bgot_True, Bcommand_wait_cmd
-    bot.send_message(message.chat.id, dict_wait["start"][language].format(Bcommand_wait_cmd))
+    global got_True, command_wait_cmd
+    bot.send_message(message.chat.id, dict_wait["start"][language].format(command_wait_cmd))
     time_in = time.time()
     time_out = 0
     while (time_out - time_in) <= 10:
-        if Bgot_True is True:
-            Bcommand_wait_cmd = True
-            bot.send_message(message.chat.id, dict_wait["inside"][language].format(Bcommand_wait_cmd))
+        if got_True is True:
+            command_wait_cmd = True
+            bot.send_message(message.chat.id, dict_wait["inside"][language].format(command_wait_cmd))
             break
-        if Bgot_True is False:
-            Bcommand_wait_cmd = False
-            bot.send_message(message.chat.id, dict_wait["inside"][language].format(Bcommand_wait_cmd))
+        if got_True is False:
+            command_wait_cmd = False
+            bot.send_message(message.chat.id, dict_wait["inside"][language].format(command_wait_cmd))
             break
     bot.send_message(message.chat.id, f">>quit<<\n >>{send_message_in.__name__}<<")
 
@@ -353,51 +373,59 @@ def send_message_in(message):
 @bot.message_handler(commands=['yes'])
 def send_message_yes(message):
     bot.send_message(message.chat.id, f'>>DONE<<')
-    global Bgot_True
-    Bgot_True = True
+    global got_True
+    got_True = True
     time.sleep(1)
-    Bgot_True = None
+    got_True = None
 
 
 @bot.message_handler(commands=['no'])
 def send_message_yes(message):
     bot.send_message(message.chat.id, f'>>DONE<<')
-    global Bgot_True
-    Bgot_True = False
+    global got_True
+    got_True = False
     time.sleep(1)
-    Bgot_True = None
+    got_True = None
 
 
 @bot.message_handler(commands=['prproc'])
 def send_message_del(message):
-    Stext_out = ""
-    for i in range(len(Lcheck_app)):
-        Stext_out = Stext_out + f"index={i} {Lcheck_app[i]}\n"
-    bot.send_message(message.chat.id, Stext_out)
+    text_out = ""
+
+    for i in range(len(kill_app)):
+        text_out = text_out + f"index={i} {kill_app[i]}\n"
+
+    bot.send_message(message.chat.id, text_out)
 
 
 @bot.message_handler(commands=['addproc'])
 def send_message_add(message):
     try:
-        global Bgot_True
-        Stext_mes = message.text.split(" ")[1]
+        global got_True
+        text_mes: str = message.text.split(" ")[1]
         bot.send_message(message.chat.id, dict_addproc["start"][language])
         time_out_func = 0
         time_in_func = time.time()
+
         while (time_out_func - time_in_func) <= 20:
             time_out_func = time.time()
-            if Bgot_True is True:
-                Lcheck_app.append(f'"{Stext_mes}.exe"')
-                bot.send_message(message.chat.id, dict_addproc["answ"][language].format(Stext_mes))
+
+            if got_True is True:
+                kill_app.append(f'"{text_mes}.exe"')
+                bot.send_message(message.chat.id, dict_addproc["answ"][language].format(text_mes))
                 break
-            if Bgot_True is False:
+
+            if got_True is False:
                 bot.send_message(message.chat.id, dict_addproc["while"][language])
                 break
+
         bot.send_message(message.chat.id, f">>quit<<\n >>{send_message_add.__name__}<<")
     except Exception as error:
+
         if error.__class__.__name__ == "IndexError":
             bot.send_message(message.chat.id, f">>IndexError: {str(error)}<<")
             bot.send_message(message.chat.id, dict_addproc["exept"][language])
+
         else:
             bot.send_message(message.chat.id, str(error))
 
@@ -405,26 +433,33 @@ def send_message_add(message):
 @bot.message_handler(commands=['delproc'])
 def send_message_del(message):
     try:
-        global Bgot_True
-        Stext_mes = message.text.split(" ")[1]
-        bot.send_message(message.chat.id, str(Lcheck_app[int(Stext_mes)]))
+        global got_True
+        text_mes: str = message.text.split(" ")[1]
+        # print info
+        bot.send_message(message.chat.id, str(kill_app[int(text_mes)]))
         bot.send_message(message.chat.id, dict_delproc["start"][language])
         time_out_func = 0
         time_in_func = time.time()
+
         while (time_out_func - time_in_func) <= 20:
             time_out_func = time.time()
-            if Bgot_True is True:
-                bot.send_message(message.chat.id, dict_delproc["answ"][language].format(Lcheck_app[int(Stext_mes)]))
-                Lcheck_app.pop(int(Stext_mes))
+
+            if got_True is True:
+                bot.send_message(message.chat.id, dict_delproc["answ"][language].format(kill_app[int(text_mes)]))
+                kill_app.pop(int(text_mes))
                 break
-            if Bgot_True is False:
+
+            if got_True is False:
                 bot.send_message(message.chat.id, dict_delproc["while"][language])
                 break
+
         bot.send_message(message.chat.id, f">>quit<<\n >>{send_message_del.__name__}<<")
     except Exception as error:
+
         if error.__class__.__name__ == "IndexError":
             bot.send_message(message.chat.id, f">>IndexError: {str(error)}<<")
             bot.send_message(message.chat.id, dict_delproc["exept"][language])
+
         else:
             bot.send_message(message.chat.id, f"{error.__class__.__name__}: {str(error)}")
 
@@ -433,6 +468,7 @@ def send_message_del(message):
 def send_message_lang(message):
     global language
     time_in = time.time()
+
     if language == "ru":
         bot.send_message(message.chat.id, "Send /yes, if u want change a language to English"
                                           "\n\n Send /no to continue")
@@ -440,18 +476,23 @@ def send_message_lang(message):
         bot.send_message(message.chat.id, "Отправьте /yes, если хотите поменять язык на Русский"
                                           "\n\n Отправьте /no для продолжения")
     while time.time() - time_in <= 10:
-        if Bgot_True is True:
+
+        if got_True is True:
+
             if language == "ru":
                 language = "en"
                 bot.send_message(message.chat.id, f"Language changed to {language}")
                 break
+
             if language == "en":
                 language = "ru"
                 bot.send_message(message.chat.id, f"Язык поменян на  {language}")
                 break
-        if Bgot_True is False:
+
+        if got_True is False:
             break
     bot.send_message(message.chat.id, f">>{send_message_lang.__name__}<<")
 
 
+# loop
 bot.polling()
